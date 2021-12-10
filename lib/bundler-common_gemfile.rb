@@ -36,24 +36,29 @@ module Bundler
 
       while true
         number_of_evaled = evaled.size
+        # tu siedzą wczytany gemy
         sources = context.instance_variable_get('@sources').all_sources
 
+        # znajdź tylko gemy `git: xxx` i `path: xxx`
         sources.select { |s| s.is_a?(::Bundler::Source::Git) || s.is_a?(::Bundler::Source::Path) }.each do |source|
-          source.instance_variable_set('@allow_remote', true) # allow git commands
+
+          # bez tego nie da się wykonac gitowych komend. Nie wiem czemu
+          source.instance_variable_set('@allow_cached', true)
 
           gem_path = if source.respond_to?('install_path')
-                       source.install_path # remote gem
+                       source.install_path # `git: xxx`
                      else
-                       source.expanded_original_path # local gem
+                       source.expanded_original_path # `path: xxx`
                      end
-          source.instance_variable_set('@install_path', nil) # unset
 
+          # czy folder istnieje? Jeżeli nie, to go pobierz z gita
           if !File.exist?(gem_path) && source.is_a?(::Bundler::Source::Git)
-            puts "Fetching #{source.name.to_s.green.bold} in search of common-gemfile"
+            puts "  fetching #{source.name.to_s.green.bold} in search of common-gemfile"
             source.specs
           end
 
           gemfile_common_path = gem_path.join('Gemfile-common.rb')
+          # załaduj Gemfile-common.rb jeśli jest
           if !evaled.include?(gemfile_common_path) && File.exist?(gemfile_common_path)
             evaled << gemfile_common_path
             STDERR.puts "Loading #{gemfile_common_path.to_s.green.bold}"
