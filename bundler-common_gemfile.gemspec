@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name          = 'bundler-common_gemfile'
-  s.version       = '0.1.9'
+  s.version       = '0.1.10'
   s.date          = '2020-12-30'
   s.summary       = 'common gemfile'
   s.description   = 'commont gemfile'
