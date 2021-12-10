@@ -39,15 +39,17 @@ module Bundler
         sources = context.instance_variable_get('@sources').all_sources
 
         sources.select { |s| s.is_a?(::Bundler::Source::Git) || s.is_a?(::Bundler::Source::Path) }.each do |source|
-          source.instance_variable_set('@allow_cached', true) # allow git commands
+          source.instance_variable_set('@allow_remote', true) # allow git commands
+
           gem_path = if source.respond_to?('install_path')
                        source.install_path # remote gem
                      else
                        source.expanded_original_path # local gem
                      end
+          source.instance_variable_set('@install_path', nil) # unset
 
-          if !File.exist?(gem_path) && source.is_a?(Bundler::Source::Git)
-            puts "  fetching #{source.name.to_s.green.bold} in search of common-gemfile"
+          if !File.exist?(gem_path) && source.is_a?(::Bundler::Source::Git)
+            puts "Fetching #{source.name.to_s.green.bold} in search of common-gemfile"
             source.specs
           end
 
